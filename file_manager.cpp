@@ -1,149 +1,164 @@
 #include <iostream>
 #include <fstream>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <filesystem>
+
 using namespace std;
+namespace fs = std::filesystem;
 
-// Create File
-void createFile() {
-    string filename;
-    cout << "Enter file name: ";
-    cin >> filename;
+class FileManager {
+public:
 
-    ofstream file(filename);
-    file.close();
+    // 🔹 Create File
+    void createFile() {
+        string filename;
+        cout << "Enter file name: ";
+        cin >> filename;
 
-    cout << "File created successfully\n";
-}
+        ofstream file(filename);
+        file.close();
 
-// Delete File
-void deleteFile() {
-    string filename;
-    cout << "Enter file name: ";
-    cin >> filename;
-
-    if (remove(filename.c_str()) == 0)
-        cout << "Deleted successfully\n";
-    else
-        cout << "Error deleting file\n";
-}
-
-// List Files
-void listFiles() {
-    system("ls");
-}
-
-// Read File
-void readFile() {
-    string filename;
-    cout << "Enter file name: ";
-    cin >> filename;
-
-    ifstream file(filename);
-    string line;
-
-    if (!file) {
-        cout << "File not found\n";
-        return;
+        cout << "File created successfully\n";
     }
 
-    while (getline(file, line)) {
-        cout << line << endl;
+    // 🔹 Delete File
+    void deleteFile() {
+        string filename;
+        cout << "Enter file name: ";
+        cin >> filename;
+
+        if (fs::remove(filename))
+            cout << "Deleted successfully\n";
+        else
+            cout << "File not found\n";
     }
 
-    file.close();
-}
+    // 🔹 List Files
+    void listFiles() {
+        for (const auto &entry : fs::directory_iterator(".")) {
+            cout << entry.path().filename() << endl;
+        }
+    }
 
-// Write File
-void writeFile() {
-    string filename;
-    cout << "Enter file name: ";
-    cin >> filename;
+    // 🔹 Read File
+    void readFile() {
+        string filename;
+        cout << "Enter file name: ";
+        cin >> filename;
 
-    ofstream file(filename, ios::app);
+        ifstream file(filename);
+        string line;
 
-    string text;
-    cout << "Enter text: ";
-    cin.ignore();
-    getline(cin, text);
+        if (!file) {
+            cout << "File not found\n";
+            return;
+        }
 
-    file << text << endl;
+        while (getline(file, line)) {
+            cout << line << endl;
+        }
 
-    file.close();
+        file.close();
+    }
 
-    cout << "Written successfully\n";
-}
-//rename file
-void renameFile() {
-    string oldName, newName;
+    // 🔹 Write File
+    void writeFile() {
+        string filename;
+        cout << "Enter file name: ";
+        cin >> filename;
 
-    cout << "Enter old file name: ";
-    cin >> oldName;
+        ofstream file(filename, ios::app);
 
-    cout << "Enter new file name: ";
-    cin >> newName;
+        string text;
+        cout << "Enter text: ";
+        cin.ignore();
+        getline(cin, text);
 
-    if (rename(oldName.c_str(), newName.c_str()) == 0)
+        file << text << endl;
+        file.close();
+
+        cout << "Written successfully\n";
+    }
+
+    // 🔹 Rename File
+    void renameFile() {
+        string oldName, newName;
+
+        cout << "Enter old name: ";
+        cin >> oldName;
+
+        cout << "Enter new name: ";
+        cin >> newName;
+
+        fs::rename(oldName, newName);
         cout << "Renamed successfully\n";
-    else
-        cout << "Error renaming file\n";
-}
-// create folder
-void createFolder() {
-    string folder;
-    cout << "Enter folder name: ";
-    cin >> folder;
+    }
 
-    string cmd = "mkdir " + folder;
-    system(cmd.c_str());
+    // 🔹 Create Folder
+    void createFolder() {
+        string folder;
+        cout << "Enter folder name: ";
+        cin >> folder;
 
-    cout << "Folder created\n";
-}
-// search folder
-void searchFile() {
-    string filename;
-    cout << "Enter file name to search: ";
-    cin >> filename;
+        if (fs::create_directory(folder))
+            cout << "Folder created\n";
+        else
+            cout << "Folder already exists\n";
+    }
 
-    string cmd = "find . -name " + filename;
-    system(cmd.c_str());
-}
+    // 🔹 Search File (recursive)
+    void searchFile() {
+        string target;
+        cout << "Enter file name: ";
+        cin >> target;
 
-// Menu
-void menu() {
-    cout << "\n--- File Manager ---\n";
-    cout << "1. Create File\n";
-    cout << "2. Delete File\n";
-    cout << "3. List Files\n";
-    cout << "4. Read File\n";
-    cout << "5. Write File\n";
-    cout << "6. Rename File\n";
-    cout << "7. Create Folder\n";
-    cout << "8. Search File\n";
-    cout << "9. Exit\n";
-}
+        bool found = false;
+
+        for (const auto &entry : fs::recursive_directory_iterator(".")) {
+            if (entry.path().filename() == target) {
+                cout << entry.path() << endl;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            cout << "File not found\n";
+        }
+    }
+
+    // 🔹 Menu
+    void menu() {
+        cout << "\n--- File Manager ---\n";
+        cout << "1. Create File\n";
+        cout << "2. Delete File\n";
+        cout << "3. List Files\n";
+        cout << "4. Read File\n";
+        cout << "5. Write File\n";
+        cout << "6. Rename File\n";
+        cout << "7. Create Folder\n";
+        cout << "8. Search File\n";
+        cout << "9. Exit\n";
+    }
+};
 
 int main() {
+    FileManager fm;
     int choice;
 
     while (true) {
-        menu();
+        fm.menu();
         cin >> choice;
 
         switch (choice) {
-    case 1: createFile(); break;
-    case 2: deleteFile(); break;
-    case 3: listFiles(); break;
-    case 4: readFile(); break;
-    case 5: writeFile(); break;
-    case 6: renameFile(); break;
-    case 7: createFolder(); break;
-    case 8: searchFile(); break;
-    case 9: return 0;
-    default: cout << "Invalid\n";
-}
+            case 1: fm.createFile(); break;
+            case 2: fm.deleteFile(); break;
+            case 3: fm.listFiles(); break;
+            case 4: fm.readFile(); break;
+            case 5: fm.writeFile(); break;
+            case 6: fm.renameFile(); break;
+            case 7: fm.createFolder(); break;
+            case 8: fm.searchFile(); break;
+            case 9: return 0;
+            default: cout << "Invalid choice\n";
+        }
     }
-
-    return 0;
 }
